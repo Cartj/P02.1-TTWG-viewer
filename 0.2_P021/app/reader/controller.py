@@ -342,7 +342,11 @@ class Reader(QtCore.QObject, Tester):
             v, w, h = None, None, None
             if self.test(value):
                 # save data
-                v, w, h = value[1], len(value[1][0]), len(value[1])
+                try:
+                    v, w, h = value[1], len(value[1][0]), len(value[1])
+                except IndexError:
+                    self.error("Strange index error on values (value indexes [1][0], [1] {})".format(value))
+                    return
 
                 roiview = [0,0,w,h]
                 try:
