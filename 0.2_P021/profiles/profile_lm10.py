@@ -32,9 +32,6 @@ START = {
     # flag controlling application of the ROI view
     PROFILE_SHOW_ROIVIEW: True,
 
-    # flag controlling application of the ROI view
-    PROFILE_SHOW_ROIFIT: False,
-
     # View insert position
     PROFILE_INSERT_RECT: [10, 10, 20, 20],
 

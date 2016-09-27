@@ -349,6 +349,17 @@ class Reader(QtCore.QObject, Tester):
                     roiview = el[ROI_VIEW]
 
                     # check that roi is within the width and height of the image
+                    if roiview[2] > w:
+                        roiview[2] = min(100, w)
+                    if roiview[3] > h:
+                        roiview[3] = min(100, h)
+
+                    if roiview[1]+roiview[2] > w:
+                        roiview[1] = w-el[ROI_VIEW][2]
+
+                    if roiview[0]+roiview[3] > h:
+                        roiview[0] = h - el[ROI_VIEW][3]
+
                 except KeyError:
                     self.error("Configuration error on command loop (keys: {}), using default".format(ROI_VIEW))
                     pass

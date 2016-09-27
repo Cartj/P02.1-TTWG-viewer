@@ -79,16 +79,20 @@ class Starter(QtCore.QObject, Tester):
         try:
             config.PROFILES[PROFILE_START] = profile.module.START
         except AttributeError:
-            self.exitWithError("The profile is malformed - no START dict()")
+            msg = "The profile is malformed - no START dict()"
+            QtGui.QMessageBox.critical(None, "Error", msg)
+            self.exitWithError(msg)
             return
 
         # test profile - that necessary fields are present
         for el in [PROFILE_NAME, PROFILE_NICKNAME, PROFILE_TANGOATTR, PROFILE_DELAY, PROFILE_COLORTABLE, PROFILE_INSERTCENTER_LINES,
-                   PROFILE_INSERTVIEW_LINES, PROFILE_INSERT_RECT, PROFILE_SHOW_ROIFIT, PROFILE_SHOW_ROIVIEW, PROFILE_CONTROLLERS]:
+                   PROFILE_INSERTVIEW_LINES, PROFILE_INSERT_RECT, PROFILE_SHOW_ROIVIEW, PROFILE_CONTROLLERS]:
             try:
                 v = config.PROFILES[PROFILE_START][el]
             except KeyError:
-                self.exitWithError("The profile is malformed - no element ({}) is not present".format(el))
+                msg = "The profile is malformed - no element ({}) is not present".format(el)
+                QtGui.QMessageBox.critical(None, "Error", msg)
+                self.exitWithError(msg)
                 return
 
         # showing splash, initializing events

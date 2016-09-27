@@ -137,6 +137,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Tester):
         self.gv_main.scene.sigMouseMoved.connect(self.trackImageViewMouse)
         self.gv_main.ui.histogram.sigLookupTableChanged.connect(self.updateLookupTable)
 
+        self.gv_main.ui.histogram.sigLevelsChanged.connect(self.updateLevels)
+
     def readerStartStop(self, bstart, init=False):
         """
         Function processes reader controller actions - start/stop
@@ -177,21 +179,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Tester):
         action.blockSignals(True)
         config.PROFILES[PROFILE_START][PROFILE_SHOW_ROIVIEW] = bshow
         self.updateView()
-        action.blockSignals(False)
-
-    def fitRoiShowHide(self, bshow):
-        """
-        Function processes actions with fit roi visibility
-        :param bshow: flag representing state
-        :return:
-        """
-        self.debug("Processing show/hide fit ROI action")
-        action = self.actShowFitROI
-
-        # start or stop reader
-        action.blockSignals(True)
-        config.PROFILES[PROFILE_START][PROFILE_SHOW_ROIFIT] = bshow
-        self.updateView(bupdate_graph=False)
         action.blockSignals(False)
 
     def getUpdatedGraph(self, data):
@@ -310,6 +297,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Tester):
                         x1, x2, y1, y2 = com[0], com[0], com[1]  - fwhmy / 4, com[1] + fwhmy / 4
                         ov.setLine(x1, y1, x2, y2)
                         self.coms.append(oh)
+                        ov.update()
+                        oh.update()
 
             else:
                 raise ValueError
@@ -326,6 +315,10 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Tester):
 
         # reset auto parameters to keep with user settings
         self.resetImageViewParams()
+
+        # updates image levels in case we need this - only for ROI_VIEW
+        if config.PROFILES[PROFILE_START][PROFILE_SHOW_ROIVIEW]:
+            self.updateLevels()
 
         self.gv_main.update()
 
@@ -384,13 +377,15 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Tester):
 
         self.sideimage.setLookupTable(hist.getLookupTable(n=512), update=True)
 
-    def updateLevels(self, hist):
+    def updateLevels(self):
         """
             Processes changes of the levels
             :return:
         """
-        self.debug("Detecting a change of the levels ({})".format(hist))
-        self.sideimage.setLevels(hist.getLevels())
+        self.debug("Detecting a change of the levels")
+
+        self.sideimage.setLevels(self.gv_main.ui.histogram.region.getRegion())
+        self.sideimage.update()
 
     def closeEvent(self, event):
         """
@@ -518,7 +513,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Tester):
 
             QtGui.QMessageBox.information(self, "File saved", "The files were saved under:\n{}\n{}".format(fnimage, fntext))
         else:
-            QtGui.QMessageBox.warning(self,"Error", "No image is available - please load it first")
+            QtGui.QMessageBox.critical(self,"Error", "No image is available - please load it first")
 
     def initIcon(self):
         """
@@ -567,7 +562,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Tester):
                 self.starter.restoreProfile(fileinfo)
                 QtGui.QMessageBox.information(self, "Profile restored", "Successfully restored profile:\n{}".format(fileinfo.absoluteFilePath()))
             else:
-                QtGui.QMessageBox.warning(self, "Profile restoration failed",
+                QtGui.QMessageBox.critical(self, "Profile restoration failed",
                                       "Could not restore profile:\n{}".format(fileinfo.absoluteFilePath()))
         return
 
